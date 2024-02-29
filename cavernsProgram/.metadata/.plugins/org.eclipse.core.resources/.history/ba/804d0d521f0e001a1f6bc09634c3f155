@@ -1,0 +1,235 @@
+package cavernsProgramProject;
+
+import java.util.ArrayList;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Scanner;
+
+public class CavernsProgramClass {
+
+	
+		// take in the first argument from the .bat file and read the contents
+		public static String inputFile(String fileName) throws FileNotFoundException{
+			String dataFromFile = "";
+			System.out.println("Working Directory = " + System.getProperty("user.dir"));
+			File cavernsFile = new File(fileName + ".cav");
+			Scanner fileReader = new Scanner(cavernsFile);
+			dataFromFile = fileReader.nextLine();
+			System.out.println("data: " + dataFromFile);
+			fileReader.close();
+			return dataFromFile;
+		}
+
+
+		
+		public static double euclidian(double x, double y, double goalx, double goaly) {
+			return Math.sqrt((goaly - y) * (goaly - y) + (goalx - x) * (goalx - x));
+		}
+		
+		
+		
+		// sets the variables of the caverns file before applying algorithm
+		public static String algorithm(String dataFromFile){
+			String[] temp = dataFromFile.split(",", dataFromFile.length());
+			
+			int numberOfCaverns = Integer.parseInt(temp[0]);
+							
+			double[][] caverns = new double[numberOfCaverns][6];
+			int name = 1;
+			int a = 0;
+			int b = 0;
+			double g = 0;
+			double h = 0;
+			for (int i = 1; i < numberOfCaverns * 2 + 1; ++i) {
+				caverns[a][b] = name;  //set cavern name
+				++name;   ++b;
+				caverns[a][b] = Integer.parseInt(temp[i]);  //set cavern x
+				++i;	++b;
+				caverns[a][b] = Integer.parseInt(temp[i]);  //set cavern y
+				++b;
+				caverns[a][b] = g;  //set cavern g
+				++b;
+				caverns[a][b] = h;  //set cavern h
+				++b;
+				caverns[a][b] = 0;
+				--b;	--b;	--b;	--b;    --b;	++a;
+
+			}
+			
+			double[] goal = {caverns[caverns.length-1][0] , caverns[caverns.length-1][1] , caverns[caverns.length-1][2]};
+			
+			int[] cavernConnectivity = new int[numberOfCaverns*numberOfCaverns];
+			int j = 0;
+			for (int i = numberOfCaverns * 2 + 1; i < temp.length; ++i) {
+				cavernConnectivity[j] = Integer.parseInt(temp[i]);
+				++j;
+			}
+			
+						//////
+						System.out.println("N=" + numberOfCaverns);
+						System.out.println("goal = " + goal[0] +"-"+ goal[1] + "," + goal[2]);
+						System.out.print("caverns: ");
+						for (int i = 0; i < caverns.length; ++i) {
+							for(int p = 0; p < caverns[i].length; ++p) {  System.out.print(caverns[i][p] +" ");  }}
+						System.out.print("\ncavernConnectivity: ");
+						for (int i = 0; i < cavernConnectivity.length; ++i) {  System.out.print(cavernConnectivity[i] +" "); }
+						//////
+			
+			
+			// get and set the start node h
+			caverns[0][4] = euclidian(caverns[0][1], caverns[0][2], goal[1], goal[2]); ///////
+			
+			
+			// ========= ALGORITHM ====================================
+			// goes through the caverns applying the A* algorithm
+			//////  OPEN //the set of nodes to be evaluated ////////////////////////////////////
+			//////  CLOSED //the set of nodes already evaluated ////////////////////////////////////
+			//////  add the start node to OPEN   ////////////////////////////////////
+			ArrayList<Integer> openList = new ArrayList<Integer>();
+			ArrayList<Integer> closedList = new ArrayList<Integer>();
+			openList.add((int) caverns[0][0]);	//add start node name
+
+			
+			
+			//////  loop ////////////////////////////////////
+			int pathFound = 0;
+			String path = "0";
+			int currentNode = 0;
+			while(pathFound == 0) {
+				//////  current = node in OPEN with the lowest f_cost ////////////////////////////////////
+				System.out.print("\n\nFINDING LOWEST F IN OPEN");
+				double openListLowestF =  (caverns[openList.get(0)-1][3] + caverns[openList.get(0)-1][4] + 1);    // f(n) value lowest in openList
+				for(int i=0; i<caverns.length; ++i) {   // go through openList to find lowest f
+					System.out.print("\ncavern "+caverns[i][0] + " g="+caverns[i][3] +" h="+ caverns[i][4]);
+					if(openList.contains((int) caverns[i][0])) {   // in openList
+						System.out.print(" -");
+						if(caverns[i][3] + caverns[i][4] < openListLowestF) {      // compare f's
+							openListLowestF = (caverns[i][3] + caverns[i][4]);
+							currentNode = (int) caverns[i][0];
+							System.out.print(" -");
+						}
+					}
+				}
+				System.out.println("\n\n ==== === == = =  =   =   curent = " + currentNode);
+				//////  remove current from OPEN ////////////////////////////////////
+				openList.remove(openList.indexOf(currentNode));
+				//////  add current to CLOSED ////////////////////////////////////
+				closedList.add((int) (currentNode));
+				
+				
+				//////  if current is the target node //path has been found
+					//////  return
+				if(currentNode == (int) goal[0]) {
+					System.out.println("\n\n |||||||||      ||||||||| ");
+					String[] tempPath = new String[numberOfCaverns];   // 431
+					int q = 0;
+					while(currentNode!=1) {
+						tempPath[q] =  Integer.toString(currentNode);   //  add the node
+						System.out.println(tempPath[q]);
+						currentNode = (int) caverns[currentNode-1][5];  //  go to parent
+						++q;
+					}
+					tempPath[q] = Integer.toString(1);
+					
+					System.out.println(tempPath[q]);
+					//path = 
+					//System.out.println(path);
+					//return path;
+					return "       0";
+				}
+				
+				
+				
+				
+				
+				 
+				//////  for each neighbour of the current node
+				for (double[] neighbour : caverns) {
+					//////  if neighbour is not traversable or neighbour is in CLOSED
+					if( closedList.contains((int)neighbour[0])) {    // neighbour in closed
+					    //////  skip to the next neighbour
+						System.out.print("\nNEIGHBOUR: " + neighbour[0]+" closed");
+						continue;
+					}
+					if((int) neighbour[0] == currentNode ) {    // neighbour is currentNode
+						System.out.print("\nNEIGHBOUR: " + neighbour[0]+" currentNode");
+						continue;
+					}
+					if( cavernConnectivity[(int) (neighbour[0]*numberOfCaverns-numberOfCaverns + currentNode -1)] == 0 ) {   // neighbour is not reachable
+						System.out.print("\nNEIGHBOUR: " + neighbour[0]+" not reachable");
+						System.out.print(" read: "+ cavernConnectivity[(int) (neighbour[0]*numberOfCaverns-numberOfCaverns + currentNode -1)] +" index: "+ ((int) (neighbour[0]*numberOfCaverns-numberOfCaverns + currentNode -1)));
+						continue;
+					}
+					System.out.print("\n  NEIGHBOUR: " + neighbour[0]+" TRAVERSABLE");
+					System.out.print(" read: "+ cavernConnectivity[(int) (neighbour[0]*numberOfCaverns-numberOfCaverns + currentNode -1)] +" index: "+ ((int) (neighbour[0]*numberOfCaverns-numberOfCaverns + currentNode -1)));
+
+					
+					
+					//////  if new path to neighbour is shorter OR neighbour is not in OPEN
+						//////  set f_cost of neighbour
+					// if the neighbours new path is shorter than previously AND neighbour not in openList OR no parent yet 
+					System.out.print(" in openList "+ openList.contains((int) neighbour[0]) +", new distance from parent: " + (caverns[currentNode-1][3] + euclidian(neighbour[1], neighbour[2], caverns[currentNode-1][1], caverns[currentNode-1][2])) +" current:"+ neighbour[3] );
+					if(!(openList.contains((int) neighbour[0]))  &&  (  caverns[currentNode-1][3] + euclidian(neighbour[1], neighbour[2], caverns[currentNode-1][1], caverns[currentNode-1][2]) < neighbour[3]  || neighbour[3] == 0)) {
+						neighbour[3] = caverns[currentNode-1][3] + euclidian(neighbour[1], neighbour[2], caverns[currentNode-1][1], caverns[currentNode-1][2]);        // neighbour g  - currentNode g + distance from currentNode
+						neighbour[4] = euclidian(neighbour[1], neighbour[2], goal[1], goal[2]);       // h
+						//////  set parent of neighbour to current
+						neighbour[5] = currentNode;
+						//////  if neighbour is not in OPEN
+						if(!(openList.contains((int) neighbour[0]))) {
+							//////  add neighbour to OPEN
+							openList.add((int) neighbour[0]);
+						}
+						//set the neighbours details in caverns
+						caverns[(int) neighbour[0]-1][3] = neighbour[3];  // g
+						caverns[(int) neighbour[0]-1][4] = neighbour[4];  // h
+						caverns[(int) neighbour[0]-1][5] = neighbour[5];  // parent
+						System.out.print("\ncaverns: ");
+						for (int i = 0; i < caverns.length; ++i) {
+							for(int p = 0; p < caverns[i].length; ++p) {  System.out.print(caverns[i][p] +" ");  }
+						System.out.print(",  ");}
+					}
+					
+				}
+				
+				
+				
+
+			}
+
+			// if no route found
+			return "0";
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+		
+
+
+		public static void main(String[] args) throws IOException {
+			String fileName = "";
+			try {	fileName = args[0];	   }
+			catch(ArrayIndexOutOfBoundsException e) {	fileName = "generated30-1";	}
+			
+			// input file
+			String dataFromFile = inputFile(fileName);
+			
+			// process file and apply algorithm
+			String bestRoute = algorithm(dataFromFile);
+						
+			// make the output file and output shortest route found or '0'
+			String outputFileName = fileName.concat(".csn");
+			Files.write(Paths.get(outputFileName), bestRoute.getBytes());
+			System.out.println(bestRoute);
+		}
+	}

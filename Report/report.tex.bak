@@ -1,0 +1,410 @@
+\def\mytitle{Coursework Part 2}
+\def\mykeywords{Fill, These, In, So, google, can, find, your, report}
+\def\myauthor{Samuel Cattanach}
+\def\contact{40276600}
+\def\mymodule{SET09120 Data Analytics}
+\documentclass[12pt, a4paper]{article}
+\usepackage[a4paper,outer=2cm,inner=2cm,top=2cm,bottom=2cm]{geometry}
+\onecolumn
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+\usepackage[colorlinks,linkcolor={black},citecolor={blue!80!black},urlcolor={blue!80!black}]{hyperref}
+\usepackage[parfill]{parskip}
+\IfFileExists{uarial.sty}
+{
+    \usepackage[english]{babel}
+    \usepackage[T1]{fontenc}
+    \usepackage{uarial}
+    \renewcommand{\familydefault}{\sfdefault}
+}{
+    \GenericError{}{Couldn't find Arial font}{ you may need to install 'nonfree' fonts on your system}{}
+    \usepackage{lmodern}
+    \renewcommand*\familydefault{\sfdefault}
+}
+\usepackage{watermark}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{amsmath}
+\usepackage{algorithm2e}
+\titlespacing{\subsection}{0pt}{\parskip}{-3pt}
+\titlespacing{\subsubsection}{0pt}{\parskip}{-\parskip}
+\titlespacing{\paragraph}{0pt}{\parskip}{\parskip}
+\newcommand{\figuremacro}[5]{
+    \begin{figure}[#1]
+        \centering
+        \includegraphics[width=#5\columnwidth]{#2}
+        \caption[#3]{\textbf{#3}#4}
+        \label{fig:#2}
+    \end{figure}
+}
+\lstset{
+	escapeinside={/*@}{@*/}, language=C++,
+	basicstyle=\fontsize{8.5}{12}\selectfont,
+	numbers=left,numbersep=2pt,xleftmargin=2pt,frame=tb,
+    columns=fullflexible,showstringspaces=false,tabsize=4,
+    keepspaces=true,showtabs=false,showspaces=false,
+    backgroundcolor=\color{white}, morekeywords={inline,public,
+    class,private,protected,struct},captionpos=t,lineskip=-0.4em,
+	aboveskip=10pt, extendedchars=true, breaklines=true,
+	prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+	keywordstyle=\color[rgb]{0,0,1},
+	commentstyle=\color[rgb]{0.133,0.545,0.133},
+	stringstyle=\color[rgb]{0.627,0.126,0.941}
+}
+\thiswatermark{\centering \put(330.5,-38.0){\includegraphics[scale=0.8]{logo}} }
+\title{\mytitle}
+\author{\myauthor\hspace{1em}\\\contact\\Edinburgh Napier University\hspace{0.5em}-\hspace{0.5em}\mymodule}
+\date{}
+\hypersetup{pdfauthor=\myauthor,pdftitle=\mytitle,pdfkeywords=\mykeywords}
+\sloppy
+
+% #######################################
+% ########### START FROM HERE ###########
+% #######################################
+\begin{document}
+    \maketitle
+
+
+
+
+\section{Introduction}
+The dataset analysed within this report contains 1000 entities with 10 attributes each, describing personal and banking information of the subject as they apply for a loan from a bank. Whether or not the loan was approved is recorded along with the entity. This report outlines the steps taken throughout the data preparation stage, cleaning and formatting attributes, and the analysis stage. The methods used to analyse the dataset were classification using the C4.5 algorithm, association using the Apriori algorithm, and clustering using the k-means algorithm. Several patterns found by the three analysis methods are identified and the effectiveness of each method and algorithm is concluded.
+
+
+
+\section{Data Preparation}
+The overall initial quality of the given dataset was not suitable for analyses with algorithms due to inconsistencies and errors within several entities. Before any analysis could effectively be carried out the dataset required errors to be corrected through the use of the data cleaning and transformation tool, OpenRefine.
+The important information of how the data was collected, such as if it was entered manually, and if any pre-processing or post-processing was applied, was not available. With the lack of this information, some errors could not accurately be altered to fit any supposed actual value. 
+The several obvious spelling errors that were present in the dataset were altered to match their intended value, such as changing "ather" to "other". All values for nominal attributes were converted to lower-case as the analysing algorithms used are sensitive to case. 
+The credit amount values for several entities within the range of 5-111 million were clearly anomalous as all other credit amounts had a value less than 19000. These anomalous values were altered to match the mean average of the non-anomalous entities. 
+The age attribute had many values which were not valid whole numbers and needed to be corrected. Values over 100, comprising of 222 and 333 were changed to 22 and 33 as it could reasonably be assumed these were the entities intended ages. Negative ages could all be changed into positive whole numbers and ages such as 0.35 could all be multiplied by 100 to achieve an actual age. Assuming a minimum age of at least 18 is required, two entities, aged 1 and 6 were removed from the dataset as their actual ages could not be assumed.
+The job attribute had two entities present where their value was "yes". Their employment length cannot be determined and therefore these entities were removed.
+
+
+\section{Data conversion}
+The cleaned dataset contained both nominal and numerical values and therefore required two versions of the dataset to be made. A version with the attributes converted to numerical values was used with algorithms such as linear regression. In this numerical version the nominal values were assigned an integer value. A version of the dataset was also made with the two numerical attributes, age and credit amount, converted to nominal values for use with other algorithm such as Apriori. This nominal version of the dataset converted the numerical values for age and credit amount into several categories defined by their numerical range, for example an age of 23 was converted to "20<X<=25". The conversion of attributes was carried out using OpenRefine, transforming each attribute using an appropriate python script.
+
+
+\section{Data Analytics}
+
+\subsection{Classification}
+The first analysis method used against this dataset was classification, using the C4.5 algorithm implemented in  J48 in Weka. 
+%Configuration
+As J48 within Weka can use both nominal and numerical attributes the dataset did not need converted into either. The algorithm was used with pruning and tested using 10-fold cross-validation. All of the attributes, except "Case\_no", were included in the model.
+%Results
+The tree produced by this configuration correctly classified 72.7\% of the instances and identified 34 leaf nodes. 
+From these 34 leaf nodes, 6 of which with relatively high accuracy are of some interest. 
+
+\textbf{Rule 1} 
+%if checking\_status = <0:
+%  if credit\_history = existing paid:
+%    if purpose = radio/tv:
+%      if employment = >=7:
+%        good (6.0/1.0)
+
+Entities with a long employment history who have paid all previous debts and want a radio/tv are generally accepted by the bank. Even though the 6 entities within this branch of the decision tree have nothing in their current accounts, 5 of which were accepted and only 1 rejected. This rule suggests that "checking\_status" (current account balance) does not have a clear effect on the outcome. It also suggests that longer lengths of employment are generally favourable, as well as having shown that debts have all been paid off in the past. The reliability in both "credit\_history" and "employment" outweigh the negative aspect of having a "checking\_status" of 0.
+
+\textbf{Rule 2/3} 
+%if checking\_status = <0:
+% if credit\_history = existing paid:
+%  if purpose = furniture/equipment:
+%   if employment = 1<=X<4:
+%    If age <= 23:
+%     bad (5.0/1.0)
+
+%if checking\_status = <0:
+% if credit\_history = existing paid:
+%  if purpose = furniture/equipment:
+%   if employment = 1<=X<4:
+%    If age > 23: 
+%     good (12.0/1.0)
+These two rules suggests, with an accuracy of 85\%, that for those wanting "furniture/equipment" with paid past loans but nothing in their current accounts, their age is an important factor. Those older than 23 are much more likely to be approved than those under 23.
+
+\textbf{Rule 4} 
+%if checking\_status = <0:
+% if credit\_history = existing paid:
+%  if purpose = furniture/equipment:
+%   if employment = >=7:
+%    If credit_amount <= 1680:
+%     good (3.0)\
+
+With an accuracy of 100\% and coverage of 0.3\%, people employed longer than 7 years who wanted less than 1680 for "furniture/equipment" were approved. This rule again shows that, depending on the purpose, the credit amount is important to whether it is accepted or not.
+
+\textbf{Rule 5} 
+%if checking\_status = <0:
+% if credit\_history = existing paid:
+%  if purpose = used car:
+%   if credit_amount > 6850:
+%    bad (4.0)
+
+With an accuracy of 100\% and coverage of 0.4\%, people with the same credit history as the four previously mentioned rules who wanted more than 6850 for a used car were declined a loan. As a used car generally would cost less than the credit amount requested, it would be rational to decline these loans.
+
+\textbf{Rule 6} 
+%if checking\_status = no checking:
+% good (391.0/45.0)
+This rule, that having no checking status alone is very decisive in whether the entity is accepted suggests a strong relationship between checking status and class.Although no obvious reason supports this rule, with 89\% accuracy, those with no current account with the bank were approved.
+
+%Benefits
+As C4.5 is generally considered “the most powerful and preferred method in machine learning”, it has many benefits over other classification algorithms such as id3 (Erritali et al., 2014)\cite{Erritali_2014}. One such advantage is that it offers pruning of the resulting decision tree, replacing branches that “do not contribute significantly to our decision process” with leaf nodes produces a more concise and human-readable tree (Saha, 2018)\cite{saha_2018}. 
+%disadvantages
+
+
+
+
+
+
+
+\subsection{Association}
+The second analysis method used on the dataset was association in order to establish common sets of nominal attributes and rules that exist between them. The algorithm used for this method of analysis was Apriori.
+%Configuration
+In order to use this algorithm, the dataset attributes were required to all be nominal and therefor the nominal version of the dataset was used for analysis. within Weka, the  "lowerBoundMinSupport" was set to 0.1 and the "upperBoundMinSupport" set to 1.
+%Results
+The six rules with the highest confidence values were all classified as 'good' and were also dependent on the applicant having no checking status, suggesting those with no checking status are more likely than those who do have a current account to be approved.
+
+\textbf{Rule 1} 
+
+% checking\_status=no checking  purpose=radio/tv  126 ==> class=good 119    %  <conf:(0.94)> lift:(1.35) lev:(0.03) [30] conv:(4.73)				
+The rule found by the Apriori algorithm with the highest confidence value, 0.94, was the set of entities who had no checking status and the loan purpose was for a radio or tv. As 119 entities were correctly classified as good following this rule it suggests that asking for a loan for a radio or tv greatly increases the chance of approval. 
+
+\textbf{Rule 2} 
+
+% checking\_status=no checking  personal\_status=male single  230 ==> class=good 207    %  <conf:(0.9)> lift:(1.29) lev:(0.05) [46] conv:(2.88)
+The second rule identified, with a confidence value of 0.9, suggests that out of those with no checking status that single males are more likely than any other males or females to be accepted. 21\% of the entities within the dataset fell under this subset and were correctly classified
+
+\textbf{Rule 3} 
+
+% checking\_status=no checking  employment=>=7  115 ==> class=good 107    %  <conf:(0.93)> lift:(1.33) lev:(0.03) [26] conv:(3.84)			
+With a confidence value of 0.93, it's shown to be evident, within the subset of those with no checking status, that having a longer employment length is obviously more beneficial. Those employed longer than 7 years were the most accepted in this subset, although less accepted than those employed less than one year when checking status is disregarded. 
+
+\textbf{Rule 4} 
+
+% checking\_status=no checking  personal\_status=male single  job=skilled  149 ==> class=good 138    %  <conf:(0.93)> lift:(1.32) lev:(0.03) [33] conv:(3.73)
+The fourth most confident rule, with 0.93, takes into account job as well as personal status and checking status. Out of the single males described in the second rule, those with skilled jobs were more successful than both unskilled and highly educated single males.
+
+\textbf{Rule 5} 
+
+% checking\_status=no checking  credit\_history=existing paid  job=skilled  127 ==> class=good 115    %  <conf:(0.91)> lift:(1.29) lev:(0.03) [26] conv:(2.93)			
+With a confidence value of 0.91, skilled workers with no current account but had previously paid debts were widely accepted loans. It is most favourable when an entity has a good established credit history.
+
+\textbf{Rule 6} 
+
+% checking\_status=no checking  job=skilled  263 ==> class=good 237    %  <conf:(0.9)> lift:(1.29) lev:(0.05) [52] conv:(2.92)			
+To support rule 5, With a confidence value of 0.9, skilled workers with no savings accounts regardless of their credit history were accepted 90\% of the time. This rule shows that credit history, although helpful, has a relatively insignificant weight in classifying this subset.
+
+All six rules presented by the Apriori algorithm show the highest confidence values for a "good" class when the entities do not have a current account, This generally would not have been the expected case as surely a higher amount of savings would be favourable. The most likely explanation for such results is that the entities have existing current accounts with other banks.
+
+%Benefits
+The benefit of using association rules is that it brings to light what attributes within the dataset occur most commonly together, allowing analysis of rules which may have been overlooked by classification algorithms. 
+
+%disadvantages
+Although a beneficial method of analysis, the Apriori algorithm may be limiting when finding associations between large amounts of sets as it may "increase the number of spurious associations detected" which will not be helpful in analysis of the attributes (Ng, 2019)\cite{ng_2016}.
+
+
+
+
+
+
+\subsection{Clustering}
+The third method used for analysing the dataset was clustering. The algorithm used for this method was k-means using the SimpleKMeans clusterer in Weka.
+%Configuration
+This algorithm was run using numerical values for both age and credit amount and nominal amounts for the other attributes. the model was run for 1000 iterations to make 4 clusters using the Manhattan distance as the distance function because it gave a slightly more accurate classification.
+%Results
+The results produced when evaluating the classes for the clusters were not nearly as accurate as the algorithms used for classification and association as only 36\% of clustered instances were classified successfully.
+
+
+The four clusters generated from the model shared a lot of the same values for attributes, such as all four clusters having a credit history of existing paid, and all four having a saving status of less than 100. 
+As age and credit amount were numerical attributes they did produce more distinct clusters, but no association is noticeable from these two attributes alone.
+
+In conclusion to the analysis carried out by k means clustering, the resulting clusters were very inaccurate in their classifications in comparison to other methods and are not at all distinct from one another.
+By viewing the resulting clusters no obvious associations or rules are distinguishable. Because only two of the attributes are numerical, k means clustering does not prove to be an effective method of analysis for this dataset. 
+
+
+
+
+
+
+\section{Conclusion}
+The most accurate rules produced from the analysis of this dataset were produced from classification with the C4.5 algorithm which produced several rules with 100\% confidence, although the coverage of such rules was generally very low. Association with the Apriori algorithm produced several rules with a confidence value within the range of 90\% to 94\% and a much higher coverage than C4.5, ranging from 15\% to 26\%. The clustering method using k means did not yield useful rules in comparison. From the results shown, Apriori clearly produces the most useful rules with both a high coverage and accuracy.
+
+
+
+
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+\clearpage
+\section*{Appendices}
+
+	
+\subsection*{Appendix A}
+	        
+\textbf{Classification Rules}
+
+Rule 1
+\begin{verbatim}
+   if checking_status = '<0':
+     if credit_history = 'existing paid':
+       if purpose = 'radio/tv':
+         if employment = '>=7':
+           good (6.0/1.0)
+\end{verbatim}
+
+Rule 2
+\begin{verbatim}
+   if checking_status = <0:
+     if credit_history = existing paid:
+       if purpose = furniture/equipment:
+         if employment = 1<=X<4:
+           If age <= 23:
+             bad (5.0/1.0)
+\end{verbatim}
+
+Rule 3
+\begin{verbatim}
+   if checking_status = <0:
+     if credit_history = existing paid:
+       if purpose = furniture/equipment:
+         if employment = 1<=X<4:
+           If age > 23: 
+             good (12.0/1.0)
+\end{verbatim}
+
+Rule 4
+\begin{verbatim}
+   if checking_status = <0:
+     if credit_history = existing paid:
+       if purpose = furniture/equipment:
+         if employment = >=7:
+           If credit_amount <= 1680:
+             good (3.0)
+\end{verbatim}
+
+Rule 5
+\begin{verbatim}
+   if checking_status = <0:
+     if credit_history = existing paid:
+       if purpose = used car:
+         if credit_amount > 6850:
+           bad (4.0)
+\end{verbatim}
+
+Rule 6
+\begin{verbatim}
+   if checking_status = no checking:
+     good (391.0/45.0)
+\end{verbatim}
+
+
+
+\subsection*{Appendix B}
+	        
+\textbf{Association Rules}
+
+Rule 1
+\begin{verbatim}
+   checking_status='no checking'
+   purpose='radio/tv'  126 ==> class=good 119      
+   <conf:(0.94)> lift:(1.35) lev:(0.03) [30] conv:(4.73)				
+\end{verbatim}
+
+Rule 2
+\begin{verbatim}
+   checking_status='no checking'
+   personal_status='male single'  230 ==> class=good 207      
+   <conf:(0.9)> lift:(1.29) lev:(0.05) [46] conv:(2.88)
+\end{verbatim}
+
+Rule 3
+\begin{verbatim}
+   checking_status='no checking'
+   employment='>=7'  115 ==> class=good 107      
+   <conf:(0.93)> lift:(1.33) lev:(0.03) [26] conv:(3.84)			
+\end{verbatim}
+
+Rule 4
+\begin{verbatim}
+   checking_status='no checking'
+   personal_status='male single'  
+   job='skilled'  149 ==> class=good 138      
+   <conf:(0.93)> lift:(1.32) lev:(0.03) [33] conv:(3.73)
+\end{verbatim}
+
+Rule 5
+\begin{verbatim}
+   checking_status='no checking'
+   credit_history='existing paid' 
+   job=skilled'  127 ==> class=good 115      
+   <conf:(0.91)> lift:(1.29) lev:(0.03) [26] conv:(2.93)			
+\end{verbatim}
+
+Rule 6
+\begin{verbatim}
+   checking_status=no checking'
+   job=skilled'  263 ==> class=good 237      
+   <conf:(0.9)> lift:(1.29) lev:(0.05) [52] conv:(2.92)			
+\end{verbatim}
+
+
+
+\subsection*{Appendix C}
+	        
+\textbf{Clustering Rules}
+
+Cluster 1
+\begin{verbatim}
+  checking_status: <0'
+  credit_history:	existing paid'
+  purpose: new car'
+  credit_amount: 2623.5
+  saving_status: <100'
+  employment:	1<=X<4'
+  personal_status: male single'
+  age: 30
+  job: skilled'
+\end{verbatim}
+
+Cluster 2
+\begin{verbatim}
+  checking_status: no checking'
+  credit_history:	existing paid'
+  purpose: radio/tv'
+  credit_amount: 2250.5
+  saving_status: <100'
+  employment:	>=7
+  personal_status: male single'
+  age: 40
+  job: skilled'
+\end{verbatim}
+
+Cluster 3
+\begin{verbatim}
+  checking_status: no checking'
+  credit_history:	existing paid'
+  purpose: radio/tv'
+  credit_amount: 1961
+  saving_status: <100'
+  employment:	<1
+  personal_status: female div/sep/mar'
+  age: 27
+  job: skilled'
+\end{verbatim}
+
+Cluster 4
+\begin{verbatim}
+  checking_status: no checking'
+  credit_history:	existing paid'
+  purpose: new car
+  credit_amount: 3244
+  saving_status: <100'
+  employment:	1<=X<4'
+  personal_status: male single'
+  age: 37
+  job: unskilled resident'
+\end{verbatim}
+
+
+
+		
+\end{document}
